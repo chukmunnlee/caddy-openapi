@@ -44,7 +44,7 @@ func init() {
 
 func (oapi OpenAPI) CaddyModule() caddy.ModuleInfo {
 	return caddy.ModuleInfo{
-		ID:  "http.handlers.oasfilter",
+		ID:  "http.handlers.openapi",
 		New: func() caddy.Module { return new(OpenAPI) },
 	}
 }
