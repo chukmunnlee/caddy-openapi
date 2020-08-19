@@ -1,0 +1,20 @@
+:8080 {
+
+	@api {
+		path /api/*
+	}
+
+	reverse_proxy @api {
+		to localhost:3000
+	}
+
+	route @api {
+		openapi ./samples/hello.yaml 
+	}
+
+	handle_errors {
+		respond @api "Resource: {http.request.orig_uri}. Error: {openapi.error}" 400  {
+			close
+		}
+	}
+}

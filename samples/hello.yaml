@@ -1,0 +1,40 @@
+openapi: "3.0.3"
+info:
+   title: "hello"
+   version: "1.0.0"
+
+servers:
+- url: http://localhost:8080
+  description: "Development"
+
+paths:
+   /api/hello:
+      get:
+         description: Greet server
+         operationId: sayHello
+         parameters:
+         - name: name
+           in: query
+           schema:
+              type: string
+              default: fred
+         responses:
+            201:
+               description: greetings
+               content:
+                  text/html:
+                     schema:
+                        type: string
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/hello-response"
+
+components:
+   schemas:
+      hello-response:
+         type: object
+         properties:
+            time:
+               type: string
+            message:
+               type: string
