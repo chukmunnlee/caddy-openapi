@@ -18,11 +18,17 @@ import (
 )
 
 const (
-	OPENAPI_ERROR = "openapi.error"
+	OPENAPI_ERROR      = "openapi.error"
+	TOKEN_OPENAPI      = "openapi"
+	TOKEN_SPEC         = "spec"
+	TOKEN_FALL_THROUGH = "fall_through"
+	TOKEN_LOG_ERROR    = "log_error"
 )
 
 type OpenAPI struct {
-	Spec string `json:"spec"`
+	Spec        string `json:"spec"`
+	FallThrough bool   `json:"fall_through"`
+	LogError    bool   `json:"log_error"`
 
 	swagger *openapi3.Swagger
 	router  *openapi3filter.Router
@@ -49,60 +55,88 @@ func (oapi OpenAPI) CaddyModule() caddy.ModuleInfo {
 	}
 }
 
-func (oas *OpenAPI) Provision(ctx caddy.Context) error {
-	fmt.Println("in Provision")
+func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 
 	var swagger *openapi3.Swagger
 	var err error
 	var abc error
 
-	oas.logger = ctx.Logger(oas)
-	defer oas.logger.Sync()
+	oapi.logger = ctx.Logger(oapi)
+	defer oapi.logger.Sync()
 
-	oas.log(fmt.Sprintf("Using OpenAPI spec: %s", oas.Spec))
+	oapi.log(fmt.Sprintf("Using OpenAPI spec: %s", oapi.Spec))
 
-	if strings.HasPrefix("http", oas.Spec) {
+	if strings.HasPrefix("http", oapi.Spec) {
 		var u *url.URL
-		if u, err = url.Parse(oas.Spec); nil != err {
+		if u, err = url.Parse(oapi.Spec); nil != err {
 			return err
 		}
 		if swagger, err = openapi3.NewSwaggerLoader().LoadSwaggerFromURI(u); nil != err {
 			return err
 		}
-	} else if _, err = os.Stat(oas.Spec); !(nil == err || os.IsExist(err)) {
+	} else if _, err = os.Stat(oapi.Spec); !(nil == err || os.IsExist(err)) {
 		return err
 
-	} else if swagger, abc = openapi3.NewSwaggerLoader().LoadSwaggerFromFile(oas.Spec); nil != abc {
+	} else if swagger, abc = openapi3.NewSwaggerLoader().LoadSwaggerFromFile(oapi.Spec); nil != abc {
 		return abc
 	}
 
 	router := openapi3filter.NewRouter()
 	router.AddSwagger(swagger)
 
-	oas.swagger = swagger
-	oas.router = router
+	oapi.swagger = swagger
+	oapi.router = router
 
 	return nil
 }
 
-func (oas OpenAPI) Validate() error {
+func (oapi OpenAPI) Validate() error {
 	return nil
 }
 
-func (oas *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
-	for d.Next() {
-		args := d.RemainingArgs()
+func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 
-		switch len(args) {
-		case 0:
-			return d.Err("missing openapi specification file")
-		case 1:
-			oas.Spec = args[0]
-		default:
-			return d.Err("unexpected number of arguments")
-		}
+	oapi.Spec = ""
+	oapi.FallThrough = false
+	oapi.LogError = false
+
+	// Skip the openapi directive
+	d.Next()
+	args := d.RemainingArgs()
+	if 1 == len(args) {
+		d.NextArg()
+		oapi.Spec = d.Val()
 	}
 
+	for nest := d.Nesting(); d.NextBlock(nest); {
+		token := d.Val()
+		switch token {
+		case TOKEN_SPEC:
+			if !d.NextArg() {
+				return d.Err("missing OpenAPI spec file")
+			} else {
+				oapi.Spec = d.Val()
+			}
+			if d.NextArg() {
+				return d.ArgErr()
+			}
+
+		case TOKEN_FALL_THROUGH:
+			if d.NextArg() {
+				return d.ArgErr()
+			}
+			oapi.FallThrough = true
+
+		case TOKEN_LOG_ERROR:
+			if d.NextArg() {
+				return d.ArgErr()
+			}
+			oapi.LogError = true
+
+		default:
+			return d.Errf("unknown option: '%s'", token)
+		}
+	}
 	return nil
 }
 

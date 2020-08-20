@@ -9,7 +9,11 @@
 	}
 
 	route @api {
-		openapi ./samples/hello.yaml 
+		openapi {
+			spec ./samples/hello.yaml
+			fall_through 
+			log_error
+		}
 	}
 
 	handle_errors {
