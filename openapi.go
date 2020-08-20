@@ -134,8 +134,12 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 			oapi.LogError = true
 
 		default:
-			return d.Errf("unknown option: '%s'", token)
+			return d.Errf("unrecognized subdirective: '%s'", token)
 		}
+	}
+
+	if "" == oapi.Spec {
+		return d.Err("missing OpenAPI spec file")
 	}
 	return nil
 }
