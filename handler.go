@@ -35,7 +35,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 	if nil != err {
 		replacer.Set(OPENAPI_ERROR, err.Error())
 		if oapi.LogError {
-			oapi.log(fmt.Sprintf("%s %s %s: %s", getIP(req), req.Method, req.RequestURI), err)
+			oapi.log(fmt.Sprintf("%s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
 		}
 		if !oapi.FallThrough {
 			return err
