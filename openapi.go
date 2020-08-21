@@ -18,17 +18,21 @@ import (
 )
 
 const (
-	OPENAPI_ERROR      = "openapi.error"
-	TOKEN_OPENAPI      = "openapi"
-	TOKEN_SPEC         = "spec"
-	TOKEN_FALL_THROUGH = "fall_through"
-	TOKEN_LOG_ERROR    = "log_error"
+	OPENAPI_ERROR        = "openapi.error"
+	OPENAPI_STATUS_CODE  = "openapi.status_code"
+	TOKEN_OPENAPI        = "openapi"
+	TOKEN_SPEC           = "spec"
+	TOKEN_FALL_THROUGH   = "fall_through"
+	TOKEN_LOG_ERROR      = "log_error"
+	TOKEN_VALIDATE       = "validate"
+	VALUE_REQUEST_PARAMS = "request_params"
 )
 
 type OpenAPI struct {
-	Spec        string `json:"spec"`
-	FallThrough bool   `json:"fall_through"`
-	LogError    bool   `json:"log_error"`
+	Spec          string `json:"spec"`
+	FallThrough   bool   `json:"fall_through"`
+	LogError      bool   `json:"log_error"`
+	RequestParams bool   `json:"request_params"`
 
 	swagger *openapi3.Swagger
 	router  *openapi3filter.Router
@@ -132,6 +136,12 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				return d.ArgErr()
 			}
 			oapi.LogError = true
+
+		case TOKEN_VALIDATE:
+			err := parseValidateDirective(oapi, d)
+			if nil != err {
+				return err
+			}
 
 		default:
 			return d.Errf("unrecognized subdirective: '%s'", token)

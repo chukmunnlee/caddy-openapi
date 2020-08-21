@@ -70,7 +70,7 @@ error `{openapi.error}`.
   }
 
   handle_errors {
-    respond @api "Resource: {http.request.orig_uri}. Error: {openapi.error}" 400  {
+    respond @api "Resource: {http.request.orig_uri}. Error: {openapi.error}" {openapi.status_code}  {
       close
     }
   }

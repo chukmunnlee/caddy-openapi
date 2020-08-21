@@ -11,13 +11,13 @@
 	route @api {
 		openapi {
 			spec ./samples/hello.yaml
-			fall_through 
 			log_error
+			validate request_params 
 		}
 	}
 
 	handle_errors {
-		respond @api "Resource: {http.request.orig_uri}. Error: {openapi.error}" 400  {
+		respond @api "Resource: {http.request.orig_uri}. Error: {openapi.error}" {openapi.status_code} {
 			close
 		}
 	}

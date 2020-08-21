@@ -29,19 +29,20 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 	}
 
 	replacer := req.Context().Value(caddy.ReplacerCtxKey).(*caddy.Replacer)
+	replacer.Set(OPENAPI_ERROR, "")
+	replacer.Set(OPENAPI_STATUS_CODE, "")
 
 	//route, pathParams, err := oapi.router.FindRoute(req.Method, url)
 	_, _, err := oapi.router.FindRoute(req.Method, url)
 	if nil != err {
 		replacer.Set(OPENAPI_ERROR, err.Error())
+		replacer.Set(OPENAPI_STATUS_CODE, 404)
 		if oapi.LogError {
 			oapi.log(fmt.Sprintf("%s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
 		}
 		if !oapi.FallThrough {
 			return err
 		}
-	} else {
-		replacer.Set(OPENAPI_ERROR, "")
 	}
 
 	return next.ServeHTTP(w, req)
