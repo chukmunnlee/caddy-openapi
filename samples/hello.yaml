@@ -8,6 +8,65 @@ servers:
   description: "Development"
 
 paths:
+   /api/customer/{custId}:
+      get:
+         description: Get customer
+         operationId: getCustomer
+         parameters:
+         - name: custId
+           in: path
+           required: true
+           schema:
+              type: number
+         responses:
+            200:
+               description: customer record
+               content:
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/customer"
+            404:
+               description: customer not found
+               content:
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/error-message"
+   /api/customer:
+      post:
+         description: Insert new customer
+         operationId: insertCustomer
+         requestBody:
+            content:
+               application/x-www-form-urlencoded:
+                  schema:
+                     $ref: "#/components/schemas/customer"
+               application/json:
+                  schema:
+                     $ref: "#/components/schemas/customer"
+         responses:
+            201:
+               description: customer record inserted
+               content: {}
+            400:
+               description: cannot insert new customer
+               content:
+                  schema:
+                     $ref: "#/components/schemas/error-message"
+
+   /api/time:
+      get:
+         description: Current time
+         operationId: getTime
+         responses:
+            200:
+               description: current time
+               content:
+                  text/html:
+                     schema:
+                        type: string
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/time-response"
    /api/hello:
       get:
          description: Greet server
@@ -15,9 +74,10 @@ paths:
          parameters:
          - name: name
            in: query
+           required: false
            schema:
               type: string
-              default: fred
+              default: Fred
          responses:
             201:
                description: greetings
@@ -31,6 +91,30 @@ paths:
 
 components:
    schemas:
+      customer:
+         type: object
+         required: 
+         - customerId
+         - name
+         properties:
+            customerId:
+               type: number
+            name:
+               type: string
+            email:
+               type: string
+
+      error-message:
+         type: object
+         properties:
+            message:
+               type: string
+
+      time-response:
+         type: object
+         properties:
+            time:
+               type: string
       hello-response:
          type: object
          properties:

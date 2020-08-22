@@ -18,21 +18,23 @@ import (
 )
 
 const (
-	OPENAPI_ERROR        = "openapi.error"
-	OPENAPI_STATUS_CODE  = "openapi.status_code"
-	TOKEN_OPENAPI        = "openapi"
-	TOKEN_SPEC           = "spec"
-	TOKEN_FALL_THROUGH   = "fall_through"
-	TOKEN_LOG_ERROR      = "log_error"
-	TOKEN_VALIDATE       = "validate"
-	VALUE_REQUEST_PARAMS = "request_params"
+	OPENAPI_ERROR       = "openapi.error"
+	OPENAPI_STATUS_CODE = "openapi.status_code"
+	TOKEN_OPENAPI       = "openapi"
+	TOKEN_SPEC          = "spec"
+	TOKEN_FALL_THROUGH  = "fall_through"
+	TOKEN_LOG_ERROR     = "log_error"
+	TOKEN_VALIDATE      = "validate"
+	VALUE_REQ_PARAMS    = "req_params"
 )
 
 type OpenAPI struct {
-	Spec          string `json:"spec"`
-	FallThrough   bool   `json:"fall_through"`
-	LogError      bool   `json:"log_error"`
-	RequestParams bool   `json:"request_params"`
+	Spec            string   `json:"spec"`
+	FallThrough     bool     `json:"fall_through,omitempty"`
+	LogError        bool     `json:"log_error,omitempty"`
+	RequestParams   bool     `json:"req_params,omitempty"`
+	RequestBody     bool     `json:"req_body,omitempty"`
+	RequestBodyType []string `json:"req_body_type,omitempty"`
 
 	swagger *openapi3.Swagger
 	router  *openapi3filter.Router
@@ -63,7 +65,7 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 
 	var swagger *openapi3.Swagger
 	var err error
-	var abc error
+	var err2 error
 
 	oapi.logger = ctx.Logger(oapi)
 	defer oapi.logger.Sync()
@@ -81,8 +83,8 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 	} else if _, err = os.Stat(oapi.Spec); !(nil == err || os.IsExist(err)) {
 		return err
 
-	} else if swagger, abc = openapi3.NewSwaggerLoader().LoadSwaggerFromFile(oapi.Spec); nil != abc {
-		return abc
+	} else if swagger, err2 = openapi3.NewSwaggerLoader().LoadSwaggerFromFile(oapi.Spec); nil != err2 {
+		return err2
 	}
 
 	router := openapi3filter.NewRouter()
@@ -103,6 +105,8 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	oapi.Spec = ""
 	oapi.FallThrough = false
 	oapi.LogError = false
+	oapi.RequestParams = false
+	oapi.RequestBody = false
 
 	// Skip the openapi directive
 	d.Next()

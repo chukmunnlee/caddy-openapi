@@ -1,14 +1,19 @@
 package openapi
 
 import (
+	"strings"
+
+	"net/http"
+
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 )
 
-func (oapi OpenAPI) log(msg string) {
-	defer oapi.logger.Sync()
-
-	sugar := oapi.logger.Sugar()
-	sugar.Infof(msg)
+func getIP(req *http.Request) string {
+	ip := req.Header.Get("X-Forwarded-For")
+	if "" != ip {
+		return strings.Split(ip, ",")[0]
+	}
+	return strings.Split(req.RemoteAddr, ":")[0]
 }
 
 func parseValidateDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
@@ -21,7 +26,7 @@ func parseValidateDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 	for _, token := range args {
 
 		switch token {
-		case VALUE_REQUEST_PARAMS:
+		case VALUE_REQ_PARAMS:
 			oapi.RequestParams = true
 
 		default:
