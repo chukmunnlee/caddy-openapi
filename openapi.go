@@ -106,7 +106,6 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	oapi.Spec = ""
 	oapi.FallThrough = false
 	oapi.LogError = false
-	oapi.RequestParams = false
 	oapi.RequestBody = false
 
 	// Skip the openapi directive

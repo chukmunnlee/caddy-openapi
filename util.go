@@ -30,6 +30,7 @@ func parseValidateDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 			oapi.RequestParams = true
 
 		case VALUE_REQ_BODY:
+			oapi.RequestParams = true
 			oapi.RequestBody = true
 
 		default:

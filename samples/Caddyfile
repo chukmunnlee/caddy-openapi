@@ -11,7 +11,7 @@
 	route @api {
 		openapi {
 			spec ./samples/hello.yaml
-			validate req_params 
+			validate req_body
 			log_error
 		}
 	}
