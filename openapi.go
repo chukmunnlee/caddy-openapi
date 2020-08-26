@@ -26,6 +26,7 @@ const (
 	TOKEN_LOG_ERROR     = "log_error"
 	TOKEN_VALIDATE      = "validate"
 	VALUE_REQ_PARAMS    = "req_params"
+	VALUE_REQ_BODY      = "req_body"
 )
 
 type OpenAPI struct {

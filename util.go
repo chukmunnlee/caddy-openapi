@@ -29,6 +29,9 @@ func parseValidateDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 		case VALUE_REQ_PARAMS:
 			oapi.RequestParams = true
 
+		case VALUE_REQ_BODY:
+			oapi.RequestBody = true
+
 		default:
 			return d.Errf("unrecognized validate option: '%s'", token)
 		}
