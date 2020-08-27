@@ -29,13 +29,22 @@ const (
 	VALUE_REQ_BODY      = "req_body"
 )
 
+// This middleware validates request against an OpenAPI V3 specification. No conforming request can be rejected
 type OpenAPI struct {
-	Spec            string   `json:"spec"`
-	FallThrough     bool     `json:"fall_through,omitempty"`
-	LogError        bool     `json:"log_error,omitempty"`
-	RequestParams   bool     `json:"req_params,omitempty"`
-	RequestBody     bool     `json:"req_body,omitempty"`
-	RequestBodyType []string `json:"req_body_type,omitempty"`
+	// The location of the OASv3 file
+	Spec string `json:"spec"`
+
+	// Should the request proceed if it fails validation. Default is `false`
+	FallThrough bool `json:"fall_through,omitempty"`
+
+	// Should the non compliant request be logged? Default is `false`
+	LogError bool `json:"log_error,omitempty"`
+
+	// Enable request query validation. Default is `false`
+	RequestParams bool `json:"req_params,omitempty"`
+
+	// Enable request payload validation. Default is `false`
+	RequestBody bool `json:"req_body,omitempty"`
 
 	swagger *openapi3.Swagger
 	router  *openapi3filter.Router
