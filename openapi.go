@@ -24,7 +24,7 @@ const (
 	TOKEN_SPEC          = "spec"
 	TOKEN_FALL_THROUGH  = "fall_through"
 	TOKEN_LOG_ERROR     = "log_error"
-	TOKEN_VALIDATE      = "validate"
+	TOKEN_CHECK         = "check"
 	VALUE_REQ_PARAMS    = "req_params"
 	VALUE_REQ_BODY      = "req_body"
 )
@@ -40,16 +40,21 @@ type OpenAPI struct {
 	// Should the non compliant request be logged? Default is `false`
 	LogError bool `json:"log_error,omitempty"`
 
-	// Enable request query validation. Default is `false`
-	RequestParams bool `json:"req_params,omitempty"`
-
-	// Enable request payload validation. Default is `false`
-	RequestBody bool `json:"req_body,omitempty"`
+	// Enable request and response validation
+	Check *CheckOptions `json:"check,omitempty"`
 
 	swagger *openapi3.Swagger
 	router  *openapi3filter.Router
 
 	logger *zap.Logger
+}
+
+type CheckOptions struct {
+	// Enable request query validation. Default is `false`
+	RequestParams bool `json:"req_params,omitempty"`
+
+	// Enable request payload validation. Default is `false`
+	RequestBody bool `json:"req_body,omitempty"`
 }
 
 var (
@@ -115,7 +120,7 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	oapi.Spec = ""
 	oapi.FallThrough = false
 	oapi.LogError = false
-	oapi.RequestBody = false
+	oapi.Check = nil
 
 	// Skip the openapi directive
 	d.Next()
@@ -150,8 +155,8 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 			}
 			oapi.LogError = true
 
-		case TOKEN_VALIDATE:
-			err := parseValidateDirective(oapi, d)
+		case TOKEN_CHECK:
+			err := parseCheckDirective(oapi, d)
 			if nil != err {
 				return err
 			}

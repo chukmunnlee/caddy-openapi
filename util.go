@@ -16,31 +16,44 @@ func getIP(req *http.Request) string {
 	return strings.Split(req.RemoteAddr, ":")[0]
 }
 
-func parseValidateDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
+func parseCheckDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 
 	args := d.RemainingArgs()
-	if len(args) <= 0 {
+	if len(args) != 0 {
 		return d.ArgErr()
 	}
 
-	for _, token := range args {
+	oapi.Check = &CheckOptions{RequestBody: false, RequestParams: false}
 
-		switch token {
-		case VALUE_REQ_PARAMS:
-			oapi.RequestParams = true
+	/*
+		for _, token := range args {
 
-		case VALUE_REQ_BODY:
-			oapi.RequestParams = true
-			oapi.RequestBody = true
+			switch token {
+			case VALUE_REQ_PARAMS:
+				oapi.Check.RequestParams = true
 
-		default:
-			return d.Errf("unrecognized validate option: '%s'", token)
+			case VALUE_REQ_BODY:
+				oapi.Check.RequestParams = true
+				oapi.Check.RequestBody = true
+
+			default:
+				return d.Errf("unrecognized validate option: '%s'", token)
+			}
 		}
-	}
+	*/
 
 	for nest := d.Nesting(); d.NextBlock(nest); {
 		token := d.Val()
 		switch token {
+		case VALUE_REQ_PARAMS:
+			oapi.Check.RequestParams = true
+
+		case VALUE_REQ_BODY:
+			oapi.Check.RequestParams = true
+			oapi.Check.RequestBody = true
+
+		default:
+			return d.Errf("unrecognized validate option: '%s'", token)
 		}
 	}
 

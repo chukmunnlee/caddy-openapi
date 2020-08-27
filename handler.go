@@ -38,13 +38,13 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 	}
 
 	// don't check if we have a 404 on the route
-	if (nil == err) && oapi.RequestParams {
+	if (nil == err) && (nil != oapi.Check) && oapi.Check.RequestParams {
 		validateParams := &openapi3filter.RequestValidationInput{
 			Request:    req,
 			PathParams: pathParams,
 			Route:      route,
 			Options: &openapi3filter.Options{
-				ExcludeRequestBody: !oapi.RequestBody,
+				ExcludeRequestBody: !oapi.Check.RequestBody,
 			},
 		}
 		err = openapi3filter.ValidateRequest(req.Context(), validateParams)
