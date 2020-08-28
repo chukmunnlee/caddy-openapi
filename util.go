@@ -23,24 +23,7 @@ func parseCheckDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 		return d.ArgErr()
 	}
 
-	oapi.Check = &CheckOptions{RequestBody: false, RequestParams: false}
-
-	/*
-		for _, token := range args {
-
-			switch token {
-			case VALUE_REQ_PARAMS:
-				oapi.Check.RequestParams = true
-
-			case VALUE_REQ_BODY:
-				oapi.Check.RequestParams = true
-				oapi.Check.RequestBody = true
-
-			default:
-				return d.Errf("unrecognized validate option: '%s'", token)
-			}
-		}
-	*/
+	oapi.Check = &CheckOptions{RequestBody: false, RequestParams: false, ResponseBody: nil}
 
 	for nest := d.Nesting(); d.NextBlock(nest); {
 		token := d.Val()
@@ -51,6 +34,17 @@ func parseCheckDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 		case VALUE_REQ_BODY:
 			oapi.Check.RequestParams = true
 			oapi.Check.RequestBody = true
+
+		case VALUE_RESP_BODY:
+			args := d.RemainingArgs()
+			oapi.Check.ResponseBody = make([]string, len(args))
+			if len(args) <= 0 {
+				oapi.Check.ResponseBody = append(oapi.Check.ResponseBody, "application/json")
+			} else {
+				for i, content := range args {
+					oapi.Check.ResponseBody[i] = strings.ToLower(strings.TrimSpace(content))
+				}
+			}
 
 		default:
 			return d.Errf("unrecognized validate option: '%s'", token)

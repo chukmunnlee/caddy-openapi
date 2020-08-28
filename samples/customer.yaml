@@ -1,0 +1,76 @@
+openapi: "3.0.3"
+info:
+   title: "hello"
+   version: "1.0.0"
+
+servers:
+- url: http://localhost:8080
+  description: "Development"
+
+paths:
+   /api/customer/{custId}:
+      get:
+         description: Get customer
+         operationId: getCustomer
+         parameters:
+         - name: custId
+           in: path
+           required: true
+           schema:
+              type: number
+         responses:
+            200:
+               description: customer record
+               content:
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/customer"
+            404:
+               description: customer not found
+               content:
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/error-message"
+   /api/customer:
+      post:
+         description: Insert new customer
+         operationId: insertCustomer
+         requestBody:
+            content:
+               application/x-www-form-urlencoded:
+                  schema:
+                     $ref: "#/components/schemas/customer"
+               application/json:
+                  schema:
+                     $ref: "#/components/schemas/customer"
+         responses:
+            201:
+               description: customer record inserted
+               content: {}
+            400:
+               description: cannot insert new customer
+               content:
+                  schema:
+                     $ref: "#/components/schemas/error-message"
+
+
+components:
+   schemas:
+      customer:
+         type: object
+         required: 
+         - customerId
+         - name
+         properties:
+            customerId:
+               type: number
+            name:
+               type: string
+            email:
+               type: string
+
+      error-message:
+         type: object
+         properties:
+            message:
+               type: string

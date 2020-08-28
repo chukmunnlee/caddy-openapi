@@ -4,15 +4,26 @@
 		path /api/*
 	}
 
+	@openapi {
+		path /api/openapi
+	}
+
 	reverse_proxy @api {
 		to localhost:3000
 	}
 
+	route @openapi {
+		rewrite @openapi /customer.yaml
+		root ./samples
+		file_server 
+	}
+
 	route @api {
 		openapi {
-			spec ./samples/hello.yaml
+			spec ./samples/customer.yaml
 			check {
-				req_params
+				req_body
+				resp_body
 			}
 			log_error
 		}

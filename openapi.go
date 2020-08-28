@@ -27,6 +27,7 @@ const (
 	TOKEN_CHECK         = "check"
 	VALUE_REQ_PARAMS    = "req_params"
 	VALUE_REQ_BODY      = "req_body"
+	VALUE_RESP_BODY     = "resp_body"
 )
 
 // This middleware validates request against an OpenAPI V3 specification. No conforming request can be rejected
@@ -47,6 +48,8 @@ type OpenAPI struct {
 	router  *openapi3filter.Router
 
 	logger *zap.Logger
+
+	contentMap map[string]string
 }
 
 type CheckOptions struct {
@@ -55,6 +58,11 @@ type CheckOptions struct {
 
 	// Enable request payload validation. Default is `false`
 	RequestBody bool `json:"req_body,omitempty"`
+
+	// Enable response body validation with an optional list of
+	// `Content-Type` to examine. Default `application/json`. If you set
+	// your content type, the default will be removed
+	ResponseBody []string `json:"resp_body,omitempty"`
 }
 
 var (
@@ -107,6 +115,13 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 
 	oapi.swagger = swagger
 	oapi.router = router
+
+	if nil != oapi.Check.ResponseBody {
+		oapi.contentMap = make(map[string]string)
+		for _, content := range oapi.Check.ResponseBody {
+			oapi.contentMap[content] = ""
+		}
+	}
 
 	return nil
 }

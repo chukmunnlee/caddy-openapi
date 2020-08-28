@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"fmt"
+	"strings"
 
 	"net/http"
 
@@ -38,30 +39,50 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 	}
 
 	// don't check if we have a 404 on the route
-	if (nil == err) && (nil != oapi.Check) && oapi.Check.RequestParams {
-		validateParams := &openapi3filter.RequestValidationInput{
-			Request:    req,
-			PathParams: pathParams,
-			Route:      route,
-			Options: &openapi3filter.Options{
-				ExcludeRequestBody: !oapi.Check.RequestBody,
-			},
-		}
-		err = openapi3filter.ValidateRequest(req.Context(), validateParams)
-		if nil != err {
-			reqErr := err.(*openapi3filter.RequestError)
-			replacer.Set(OPENAPI_ERROR, reqErr.Error())
-			replacer.Set(OPENAPI_STATUS_CODE, reqErr.HTTPStatus())
-			if oapi.LogError {
-				oapi.log(fmt.Sprintf("%s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
+	if (nil == err) && (nil != oapi.Check) {
+		if oapi.Check.RequestParams {
+			validateParams := &openapi3filter.RequestValidationInput{
+				Request:    req,
+				PathParams: pathParams,
+				Route:      route,
+				Options: &openapi3filter.Options{
+					ExcludeRequestBody: !oapi.Check.RequestBody,
+				},
 			}
-			if !oapi.FallThrough {
-				return err
+			err = openapi3filter.ValidateRequest(req.Context(), validateParams)
+			if nil != err {
+				reqErr := err.(*openapi3filter.RequestError)
+				replacer.Set(OPENAPI_ERROR, reqErr.Error())
+				replacer.Set(OPENAPI_STATUS_CODE, reqErr.HTTPStatus())
+				if oapi.LogError {
+					oapi.log(fmt.Sprintf("%s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
+				}
+				if !oapi.FallThrough {
+					return err
+				}
 			}
 		}
 	}
 
-	return next.ServeHTTP(w, req)
+	if err := next.ServeHTTP(w, req); nil != err {
+		return err
+	}
+
+	if nil != oapi.contentMap {
+		contentType := w.Header().Get("Content-Type")
+		if "" == contentType {
+			return nil
+		}
+		contentType = strings.TrimSpace(strings.Split(contentType, ";")[0])
+		_, ok := oapi.contentMap[contentType]
+		if !ok {
+			return nil
+		}
+		fmt.Printf(">>>> contentType: <%s>\n", contentType)
+		// Validate response
+	}
+
+	return nil
 }
 
 func (oapi OpenAPI) log(msg string) {
