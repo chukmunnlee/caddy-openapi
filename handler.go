@@ -78,16 +78,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 		if !ok {
 			return nil
 		}
-		fmt.Printf(">>>> contentType: <%s>\n", contentType)
-		// Validate response
 	}
 
 	return nil
-}
-
-func (oapi OpenAPI) log(msg string) {
-	defer oapi.logger.Sync()
-
-	sugar := oapi.logger.Sugar()
-	sugar.Infof(msg)
 }

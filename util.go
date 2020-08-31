@@ -55,3 +55,10 @@ func parseCheckDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 }
 
 //err := parseValidate(oapi, d)
+
+func (oapi OpenAPI) log(msg string) {
+	defer oapi.logger.Sync()
+
+	sugar := oapi.logger.Sugar()
+	sugar.Infof(msg)
+}
