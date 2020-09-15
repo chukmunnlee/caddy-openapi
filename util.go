@@ -63,7 +63,7 @@ func parseCheckDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 			}
 
 		default:
-			return d.Errf("unrecognized validate option: '%s'", token)
+			return d.Errf("Unrecognized validate option: '%s'", token)
 		}
 	}
 
