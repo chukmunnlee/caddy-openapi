@@ -41,7 +41,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 	// don't check if we have a 404 on the route
 	if (nil == err) && (nil != oapi.Check) {
 		if oapi.Check.RequestParams {
-			validateParams := &openapi3filter.RequestValidationInput{
+			validateReqInput := &openapi3filter.RequestValidationInput{
 				Request:    req,
 				PathParams: pathParams,
 				Route:      route,
@@ -49,13 +49,13 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 					ExcludeRequestBody: !oapi.Check.RequestBody,
 				},
 			}
-			err = openapi3filter.ValidateRequest(req.Context(), validateParams)
+			err = openapi3filter.ValidateRequest(req.Context(), validateReqInput)
 			if nil != err {
 				reqErr := err.(*openapi3filter.RequestError)
 				replacer.Set(OPENAPI_ERROR, reqErr.Error())
 				replacer.Set(OPENAPI_STATUS_CODE, reqErr.HTTPStatus())
 				if oapi.LogError {
-					oapi.log(fmt.Sprintf("%s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
+					oapi.log(fmt.Sprintf(">> %s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
 				}
 				if !oapi.FallThrough {
 					return err
@@ -64,7 +64,8 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 		}
 	}
 
-	if err := next.ServeHTTP(w, req); nil != err {
+	wrapper := &WrapperResponseWriter{ResponseWriter: w}
+	if err := next.ServeHTTP(wrapper, req); nil != err {
 		return err
 	}
 
@@ -73,11 +74,36 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 		if "" == contentType {
 			return nil
 		}
-		contentType = strings.TrimSpace(strings.Split(contentType, ";")[0])
+		contentType = strings.ToLower(strings.TrimSpace(strings.Split(contentType, ";")[0]))
 		_, ok := oapi.contentMap[contentType]
 		if !ok {
 			return nil
 		}
+
+		validateReqInput := &openapi3filter.RequestValidationInput{
+			Request:    req,
+			PathParams: pathParams,
+			Route:      route,
+			Options: &openapi3filter.Options{
+				ExcludeRequestBody:    true,
+				ExcludeResponseBody:   false,
+				IncludeResponseStatus: true,
+			},
+		}
+
+		if (nil != wrapper.Buffer) && (len(wrapper.Buffer) > 0) {
+			validateRespInput := &openapi3filter.ResponseValidationInput{
+				RequestValidationInput: validateReqInput,
+				Status:                 wrapper.StatusCode,
+				Header:                 http.Header{"Content-Type": oapi.Check.ResponseBody},
+			}
+			validateRespInput.SetBodyBytes(wrapper.Buffer)
+			if err := openapi3filter.ValidateResponse(req.Context(), validateRespInput); nil != err {
+				respErr := err.(*openapi3filter.ResponseError)
+				oapi.log(fmt.Sprintf("<< %s %s %s: %s", getIP(req), req.Method, req.RequestURI, respErr.Error()))
+			}
+		}
+
 	}
 
 	return nil

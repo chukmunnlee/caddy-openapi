@@ -8,6 +8,22 @@ import (
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 )
 
+type WrapperResponseWriter struct {
+	http.ResponseWriter
+	StatusCode int
+	Buffer     []byte
+}
+
+func (w *WrapperResponseWriter) WriteHeader(sc int) {
+	w.ResponseWriter.WriteHeader(sc)
+	w.StatusCode = sc
+}
+
+func (w *WrapperResponseWriter) Write(buff []byte) (int, error) {
+	w.Buffer = append(w.Buffer[:], buff[:]...)
+	return w.ResponseWriter.Write(buff)
+}
+
 func getIP(req *http.Request) string {
 	ip := req.Header.Get("X-Forwarded-For")
 	if "" != ip {
@@ -53,8 +69,6 @@ func parseCheckDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 
 	return nil
 }
-
-//err := parseValidate(oapi, d)
 
 func (oapi OpenAPI) log(msg string) {
 	defer oapi.logger.Sync()
