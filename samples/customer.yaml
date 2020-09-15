@@ -46,7 +46,10 @@ paths:
          responses:
             201:
                description: customer record inserted
-               content: {}
+               content: 
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/customer-post"
             400:
                description: cannot insert new customer
                content:
@@ -67,6 +70,17 @@ components:
             name:
                type: string
             email:
+               type: string
+
+      customer-post:
+         type: object
+         required: 
+         - message
+         - time
+         properties:
+            message:
+               type: string
+            time:
                type: string
 
       error-message:
