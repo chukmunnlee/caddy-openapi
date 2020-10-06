@@ -116,7 +116,7 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 	oapi.swagger = swagger
 	oapi.router = router
 
-	if nil != oapi.Check.ResponseBody {
+	if (nil != oapi.Check) && (nil != oapi.Check.ResponseBody) {
 		oapi.contentMap = make(map[string]string)
 		for _, content := range oapi.Check.ResponseBody {
 			oapi.contentMap[content] = ""
