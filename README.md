@@ -5,7 +5,7 @@ This middleware validates HTTP request and response against a OpenAPI V3 Specifi
 ## Installation
 
 ```
-xcaddy build v2.1.1 \
+xcaddy b1ild v2.2.0 \
     --with github.com/chukmunnlee/caddy-openapi
 ```
 
