@@ -5,9 +5,11 @@ This middleware validates HTTP request and response against a OpenAPI V3 Specifi
 ## Installation
 
 ```
-xcaddy b1ild v2.2.0 \
+xcaddy build v2.2.1 \
     --with github.com/chukmunnlee/caddy-openapi
 ```
+
+Tested with `go version go1.15.6`
 
 ## Usage
 
@@ -43,6 +45,7 @@ Reports any errors as a `{openapi.error}` [placeholder](https://caddyserver.com/
 |-------------------|-------------|
 | `spec <oas_file>` | The OpenAPI file to use. Overrides the file used with the `openapi` directive |
 | `fall_through`    | Toggles fall through when the request does do match the provided OpenAPI spec. Default is `false` |
+| `validate_servers`| Enable server validation. Accepts `true`, `false` or just the directive which enables validation. Default is `true`. |
 | `log_error`       | Toggles error logging. Default is `false` |
 | `check`           | Enable validation of the request parameters; include one or more of the following directives in the body:`req_params`, `req_body` and `resp_body`. `resp_body` only validates `application/json` payload. Note that validating the request body will implicitly set `req_params` |
 
@@ -80,6 +83,7 @@ Respond to the client with the error `{openapi.error}`.
         req_body 
         resp_body 
       }
+      validate_servers
       log_error 
     }
   }
@@ -91,4 +95,3 @@ Respond to the client with the error `{openapi.error}`.
   }
 }
 ```
-

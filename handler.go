@@ -15,11 +15,13 @@ import (
 func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next caddyhttp.Handler) error {
 
 	url := req.URL
-	url.Host = req.Host
-	if nil == req.TLS {
-		url.Scheme = "http"
-	} else {
-		url.Scheme = "https"
+	if oapi.ValidateServers {
+		url.Host = req.Host
+		if nil == req.TLS {
+			url.Scheme = "http"
+		} else {
+			url.Scheme = "https"
+		}
 	}
 
 	replacer := req.Context().Value(caddy.ReplacerCtxKey).(*caddy.Replacer)
@@ -27,6 +29,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 	replacer.Set(OPENAPI_STATUS_CODE, "")
 
 	route, pathParams, err := oapi.router.FindRoute(req.Method, url)
+
 	if nil != err {
 		replacer.Set(OPENAPI_ERROR, err.Error())
 		replacer.Set(OPENAPI_STATUS_CODE, 404)

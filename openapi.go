@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	"go.uber.org/zap"
@@ -18,16 +19,17 @@ import (
 )
 
 const (
-	OPENAPI_ERROR       = "openapi.error"
-	OPENAPI_STATUS_CODE = "openapi.status_code"
-	TOKEN_OPENAPI       = "openapi"
-	TOKEN_SPEC          = "spec"
-	TOKEN_FALL_THROUGH  = "fall_through"
-	TOKEN_LOG_ERROR     = "log_error"
-	TOKEN_CHECK         = "check"
-	VALUE_REQ_PARAMS    = "req_params"
-	VALUE_REQ_BODY      = "req_body"
-	VALUE_RESP_BODY     = "resp_body"
+	OPENAPI_ERROR          = "openapi.error"
+	OPENAPI_STATUS_CODE    = "openapi.status_code"
+	TOKEN_OPENAPI          = "openapi"
+	TOKEN_SPEC             = "spec"
+	TOKEN_FALL_THROUGH     = "fall_through"
+	TOKEN_LOG_ERROR        = "log_error"
+	TOKEN_VALIDATE_SERVERS = "validate_servers"
+	TOKEN_CHECK            = "check"
+	VALUE_REQ_PARAMS       = "req_params"
+	VALUE_REQ_BODY         = "req_body"
+	VALUE_RESP_BODY        = "resp_body"
 )
 
 // This middleware validates request against an OpenAPI V3 specification. No conforming request can be rejected
@@ -43,6 +45,9 @@ type OpenAPI struct {
 
 	// Enable request and response validation
 	Check *CheckOptions `json:"check,omitempty"`
+
+	// Enable server validation
+	ValidateServers bool `json:"valid_servers,omitempty"`
 
 	swagger *openapi3.Swagger
 	router  *openapi3filter.Router
@@ -110,8 +115,22 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 		return err2
 	}
 
+	if oapi.ValidateServers {
+		oapi.log("List of servers")
+		for _, s := range swagger.Servers {
+			oapi.log(fmt.Sprintf("- %s #%s", s.URL, s.Description))
+		}
+	} else {
+		// clear all servers
+		oapi.log("Disabling server validation")
+		//swagger.Servers = append(swagger.Servers, &openapi3.Server{URL: "/"})
+		swagger.Servers = make([]*openapi3.Server, 0)
+	}
+
 	router := openapi3filter.NewRouter()
-	router.AddSwagger(swagger)
+	if err = router.AddSwagger(swagger); nil != err {
+		return err
+	}
 
 	oapi.swagger = swagger
 	oapi.router = router
@@ -135,6 +154,7 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	oapi.Spec = ""
 	oapi.FallThrough = false
 	oapi.LogError = false
+	oapi.ValidateServers = true
 	oapi.Check = nil
 
 	// Skip the openapi directive
@@ -156,6 +176,14 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 			}
 			if d.NextArg() {
 				return d.ArgErr()
+			}
+
+		case TOKEN_VALIDATE_SERVERS:
+			if d.NextArg() {
+				b, err := strconv.ParseBool(d.Val())
+				if nil == err {
+					oapi.ValidateServers = b
+				}
 			}
 
 		case TOKEN_FALL_THROUGH:
