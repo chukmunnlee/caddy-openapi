@@ -15,12 +15,12 @@ Tested with `go version go1.15.6`
 
 ### Caddyfile
 
-Load `samples/hello.yaml` file with defaults
+Load `examples/customer/customer.yaml` file with defaults
 
 ```
 :8080 {
   route /api {
-    openapi ./samples/hello.yaml
+    openapi ./examples/customer/customer.yaml
   }
 }
 ```
@@ -31,7 +31,7 @@ One with all the options
 :8080 {
   route /api {
     openapi {
-      spec ./samples/hello.yaml
+      spec ./examples/customer/customer.yaml
       fall_through
       log_error
     }
@@ -62,7 +62,7 @@ Reports any errors as a `{openapi.error}`
 ## Example
 
 The following example validates all request, including query string as well as payloads, to `localhost:8080/api` 
-against the `./samples/hello.yaml` file.  Any non compliant request will be logged to Caddy's console. 
+against the `./examples/customer/customer.yaml` file.  Any non compliant request will be logged to Caddy's console. 
 Respond to the client with the error `{openapi.error}`.
 
 ```
@@ -78,7 +78,7 @@ Respond to the client with the error `{openapi.error}`.
 
   route @api {
     openapi {
-      spec ./samples/hello.yaml 
+      spec ./examples/customer/customer.yaml 
       check {
         req_body 
         resp_body 
@@ -95,3 +95,5 @@ Respond to the client with the error `{openapi.error}`.
   }
 }
 ```
+
+Try out the `customer.yaml` API by running the accompanying node application.

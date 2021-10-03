@@ -1,4 +1,5 @@
-VERSION = v2.2.1
+#VERSION = v2.2.1
+VERSION = ""
 TAG := $(shell git rev-parse --short master)
 
 .PHONY: all

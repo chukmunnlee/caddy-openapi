@@ -1,6 +1,6 @@
 openapi: "3.0.3"
 info:
-   title: "hello"
+   title: "customer"
    version: "1.0.0"
 
 servers:
@@ -19,18 +19,44 @@ paths:
            schema:
               type: number
          responses:
-            200:
+            '200':
                description: customer record
                content:
                   application/json:
                      schema:
                         $ref: "#/components/schemas/customer"
-            404:
+            '404':
                description: customer not found
                content:
                   application/json:
                      schema:
                         $ref: "#/components/schemas/error-message"
+
+   /api/customers:
+      get:
+         description: Get customers
+         operationId: getCustomers
+         parameters:
+         - name: offset
+           in: query
+           required: false
+           schema:
+              type: number
+              default: 0
+         - name: limit
+           in: query
+           required: false
+           schema:
+              type: number
+              default: 3
+         responses:
+            '200':
+               description: customer record
+               content:
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/customer-list"
+
    /api/customer:
       post:
          description: Insert new customer
@@ -44,18 +70,18 @@ paths:
                   schema:
                      $ref: "#/components/schemas/customer"
          responses:
-            201:
+            '201':
                description: customer record inserted
                content: 
                   application/json:
                      schema:
                         $ref: "#/components/schemas/customer-post"
-            400:
+            '400':
                description: cannot insert new customer
                content:
-                  schema:
-                     $ref: "#/components/schemas/error-message"
-
+                  application/json:
+                     schema:
+                        $ref: "#/components/schemas/error-message"
 
 components:
    schemas:
@@ -71,6 +97,12 @@ components:
                type: string
             email:
                type: string
+
+      customer-list:
+         type: array
+         items:
+            $ref: "#/components/schemas/customer"
+         minItems: 0
 
       customer-post:
          type: object

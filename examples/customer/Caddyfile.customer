@@ -14,13 +14,13 @@
 
 	route @openapi {
 		rewrite @openapi /customer.yaml
-		root ./samples
+		root .
 		file_server 
 	}
 
 	route @api {
 		openapi {
-			spec ./samples/customer.yaml
+			spec ./customer.yaml
 			check {
 				req_body
 				resp_body
