@@ -15,7 +15,8 @@ import (
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/getkin/kin-openapi/routers"
+	"github.com/getkin/kin-openapi/routers/gorillamux"
 )
 
 const (
@@ -49,8 +50,9 @@ type OpenAPI struct {
 	// Enable server validation
 	ValidateServers bool `json:"valid_servers,omitempty"`
 
-	swagger *openapi3.Swagger
-	router  *openapi3filter.Router
+	oas *openapi3.T
+	//router  *openapi3filter.Router
+	router routers.Router
 
 	logger *zap.Logger
 
@@ -91,7 +93,7 @@ func (oapi OpenAPI) CaddyModule() caddy.ModuleInfo {
 
 func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 
-	var swagger *openapi3.Swagger
+	var oas *openapi3.T
 	var err error
 	var err2 error
 
@@ -99,40 +101,42 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 	defer oapi.logger.Sync()
 
 	oapi.log(fmt.Sprintf("Using OpenAPI spec: %s", oapi.Spec))
+	oapi.log("---------------------> ********** <------------------")
 
 	if strings.HasPrefix("http", oapi.Spec) {
 		var u *url.URL
 		if u, err = url.Parse(oapi.Spec); nil != err {
 			return err
 		}
-		if swagger, err = openapi3.NewSwaggerLoader().LoadSwaggerFromURI(u); nil != err {
+		//if swagger, err = openapi3.NewSwaggerLoader().LoadSwaggerFromURI(u); nil != err {
+		if oas, err = openapi3.NewLoader().LoadFromURI(u); nil != err {
 			return err
 		}
 	} else if _, err = os.Stat(oapi.Spec); !(nil == err || os.IsExist(err)) {
 		return err
 
-	} else if swagger, err2 = openapi3.NewSwaggerLoader().LoadSwaggerFromFile(oapi.Spec); nil != err2 {
+	} else if oas, err2 = openapi3.NewLoader().LoadFromFile(oapi.Spec); nil != err2 {
 		return err2
 	}
 
 	if oapi.ValidateServers {
 		oapi.log("List of servers")
-		for _, s := range swagger.Servers {
+		for _, s := range oas.Servers {
 			oapi.log(fmt.Sprintf("- %s #%s", s.URL, s.Description))
 		}
 	} else {
 		// clear all servers
 		oapi.log("Disabling server validation")
-		//swagger.Servers = append(swagger.Servers, &openapi3.Server{URL: "/"})
-		swagger.Servers = make([]*openapi3.Server, 0)
+		oas.Servers = make([]*openapi3.Server, 0)
 	}
 
-	router := openapi3filter.NewRouter()
-	if err = router.AddSwagger(swagger); nil != err {
+	router, err := gorillamux.NewRouter(oas)
+
+	if nil != err {
 		return err
 	}
 
-	oapi.swagger = swagger
+	oapi.oas = oas
 	oapi.router = router
 
 	if (nil != oapi.Check) && (nil != oapi.Check.ResponseBody) {
@@ -213,6 +217,10 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 		return d.Err("missing OpenAPI spec file")
 	}
 	return nil
+}
+
+func (oapi *OpenAPI) log(l string) {
+	oapi.logger.Info(l)
 }
 
 func parseCaddyFile(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
