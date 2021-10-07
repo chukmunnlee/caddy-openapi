@@ -219,10 +219,6 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	return nil
 }
 
-func (oapi *OpenAPI) log(l string) {
-	oapi.logger.Info(l)
-}
-
 func parseCaddyFile(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
 	var oapi OpenAPI
 	err := oapi.UnmarshalCaddyfile(h.Dispenser)
