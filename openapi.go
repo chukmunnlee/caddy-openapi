@@ -101,14 +101,12 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 	defer oapi.logger.Sync()
 
 	oapi.log(fmt.Sprintf("Using OpenAPI spec: %s", oapi.Spec))
-	oapi.log("---------------------> ********** <------------------")
 
 	if strings.HasPrefix("http", oapi.Spec) {
 		var u *url.URL
 		if u, err = url.Parse(oapi.Spec); nil != err {
 			return err
 		}
-		//if swagger, err = openapi3.NewSwaggerLoader().LoadSwaggerFromURI(u); nil != err {
 		if oas, err = openapi3.NewLoader().LoadFromURI(u); nil != err {
 			return err
 		}

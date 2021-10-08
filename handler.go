@@ -34,7 +34,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 		replacer.Set(OPENAPI_ERROR, err.Error())
 		replacer.Set(OPENAPI_STATUS_CODE, 404)
 		if oapi.LogError {
-			oapi.log(fmt.Sprintf("%s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
+			oapi.err(fmt.Sprintf("%s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
 		}
 		if !oapi.FallThrough {
 			return err
@@ -56,9 +56,10 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 			if nil != err {
 				reqErr := err.(*openapi3filter.RequestError)
 				replacer.Set(OPENAPI_ERROR, reqErr.Error())
-				replacer.Set(OPENAPI_STATUS_CODE, reqErr.HTTPStatus())
+				//replacer.Set(OPENAPI_STATUS_CODE, reqErr.HTTPStatus())
+				replacer.Set(OPENAPI_STATUS_CODE, 400)
 				if oapi.LogError {
-					oapi.log(fmt.Sprintf(">> %s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
+					oapi.err(fmt.Sprintf(">> %s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
 				}
 				if !oapi.FallThrough {
 					return err
@@ -103,7 +104,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 			validateRespInput.SetBodyBytes(wrapper.Buffer)
 			if err := openapi3filter.ValidateResponse(req.Context(), validateRespInput); nil != err {
 				respErr := err.(*openapi3filter.ResponseError)
-				oapi.log(fmt.Sprintf("<< %s %s %s: %s", getIP(req), req.Method, req.RequestURI, respErr.Error()))
+				oapi.err(fmt.Sprintf("<< %s %s %s: %s", getIP(req), req.Method, req.RequestURI, respErr.Error()))
 			}
 		}
 	}

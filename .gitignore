@@ -2,3 +2,4 @@ caddy
 typescript
 dist
 openapitools.json
+*.tmp

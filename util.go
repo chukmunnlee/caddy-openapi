@@ -76,3 +76,9 @@ func (oapi OpenAPI) log(msg string) {
 	sugar := oapi.logger.Sugar()
 	sugar.Infof(msg)
 }
+
+func (oapi OpenAPI) err(msg string) {
+	defer oapi.logger.Sync()
+	sugar := oapi.logger.Sugar()
+	sugar.Errorf(msg)
+}
