@@ -28,7 +28,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 	replacer.Set(OPENAPI_ERROR, "")
 	replacer.Set(OPENAPI_STATUS_CODE, "")
 
-	route, pathParams, err := oapi.router.FindRoute(req.Method, url)
+	route, pathParams, err := oapi.router.FindRoute(req)
 
 	if nil != err {
 		replacer.Set(OPENAPI_ERROR, err.Error())
