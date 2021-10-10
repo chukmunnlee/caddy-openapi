@@ -152,7 +152,7 @@ The HTTP request are converted into `input` according to the following table
 | `input.scheme`           | HTTP or HTTPS |
 | `input.host`             | Host and port number |
 | `input.method`           | HTTP method  |
-| `input.path`             | Array of path elements eg. `/api/customer/123` is converted to `[ 'api', 'customer', '123 ]` |
+| `input.path`             | Array of path elements eg. `/api/customer/123` is converted to `[ 'api', 'customer', '123' ]` |
 | `input.remoteAddr`       | Host and port number of the client |
 | `input.queryString`      | If a query string is present, the query string will be destructed into a map under `queryString` root. Example `?offset=10&limit=10` will be converted to the following keys: `input.queryString.offset` and `input.queryString.limit`. Query parameters with multiple value will have an array as its value. `queryString` will not be present if the request do not contain any query params |
 | `input.pathParams`       | Like query string but a map of matched path parameters from the OpenAPI3 spec where parameter type is `in: path`. See above example |
@@ -160,3 +160,5 @@ The HTTP request are converted into `input` according to the following table
 | `input.body`             | Access to the request's body. Only supports `application/json` content type. **Not implemented yet** |
 
 Assume all values are string
+
+This plugin currently can only work with policies/rules that return true and false.
