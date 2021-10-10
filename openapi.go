@@ -13,6 +13,7 @@ import (
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
+	"github.com/open-policy-agent/opa/rego"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers"
@@ -20,9 +21,12 @@ import (
 )
 
 const (
+	MODULE_ID              = "http.handlers.openapi"
+	X_POLICY               = "x-policy"
 	OPENAPI_ERROR          = "openapi.error"
 	OPENAPI_STATUS_CODE    = "openapi.status_code"
 	TOKEN_OPENAPI          = "openapi"
+	TOKEN_POLICY_BUNDLE    = "policy_bundle"
 	TOKEN_SPEC             = "spec"
 	TOKEN_FALL_THROUGH     = "fall_through"
 	TOKEN_LOG_ERROR        = "log_error"
@@ -38,6 +42,8 @@ type OpenAPI struct {
 	// The location of the OASv3 file
 	Spec string `json:"spec"`
 
+	PolicyBundle string `json:"policy_bundle"`
+
 	// Should the request proceed if it fails validation. Default is `false`
 	FallThrough bool `json:"fall_through,omitempty"`
 
@@ -50,13 +56,14 @@ type OpenAPI struct {
 	// Enable server validation
 	ValidateServers bool `json:"valid_servers,omitempty"`
 
-	oas *openapi3.T
-	//router  *openapi3filter.Router
+	oas    *openapi3.T
 	router routers.Router
 
 	logger *zap.Logger
 
 	contentMap map[string]string
+
+	policy func(*rego.Rego)
 }
 
 type CheckOptions struct {
@@ -81,12 +88,12 @@ var (
 
 func init() {
 	caddy.RegisterModule(OpenAPI{})
-	httpcaddyfile.RegisterHandlerDirective("openapi", parseCaddyFile)
+	httpcaddyfile.RegisterHandlerDirective(TOKEN_OPENAPI, parseCaddyFile)
 }
 
 func (oapi OpenAPI) CaddyModule() caddy.ModuleInfo {
 	return caddy.ModuleInfo{
-		ID:  "http.handlers.openapi",
+		ID:  MODULE_ID,
 		New: func() caddy.Module { return new(OpenAPI) },
 	}
 }
@@ -95,7 +102,6 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 
 	var oas *openapi3.T
 	var err error
-	var err2 error
 
 	oapi.logger = ctx.Logger(oapi)
 	defer oapi.logger.Sync()
@@ -113,8 +119,8 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 	} else if _, err = os.Stat(oapi.Spec); !(nil == err || os.IsExist(err)) {
 		return err
 
-	} else if oas, err2 = openapi3.NewLoader().LoadFromFile(oapi.Spec); nil != err2 {
-		return err2
+	} else if oas, err = openapi3.NewLoader().LoadFromFile(oapi.Spec); nil != err {
+		return err
 	}
 
 	if oapi.ValidateServers {
@@ -144,6 +150,11 @@ func (oapi *OpenAPI) Provision(ctx caddy.Context) error {
 		}
 	}
 
+	if len(oapi.PolicyBundle) > 0 {
+		oapi.log(fmt.Sprintf("Loaded policy bundle: %s", oapi.PolicyBundle))
+		oapi.policy = rego.LoadBundle(oapi.PolicyBundle)
+	}
+
 	return nil
 }
 
@@ -154,6 +165,7 @@ func (oapi OpenAPI) Validate() error {
 func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 
 	oapi.Spec = ""
+	oapi.PolicyBundle = ""
 	oapi.FallThrough = false
 	oapi.LogError = false
 	oapi.ValidateServers = true
@@ -172,9 +184,19 @@ func (oapi *OpenAPI) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 		switch token {
 		case TOKEN_SPEC:
 			if !d.NextArg() {
-				return d.Err("missing OpenAPI spec file")
+				return d.Err("Missing OpenAPI spec file")
 			} else {
 				oapi.Spec = d.Val()
+			}
+			if d.NextArg() {
+				return d.ArgErr()
+			}
+
+		case TOKEN_POLICY_BUNDLE:
+			if !d.NextArg() {
+				return d.Err("Missing policy bundle")
+			} else {
+				oapi.PolicyBundle = d.Val()
 			}
 			if d.NextArg() {
 				return d.ArgErr()

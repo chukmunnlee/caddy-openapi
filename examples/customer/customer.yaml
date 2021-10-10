@@ -12,6 +12,7 @@ paths:
       get:
          description: Get customer
          operationId: getCustomer
+         x-policy: authz.allow
          parameters:
          - name: custId
            in: path

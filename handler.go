@@ -68,6 +68,28 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 		}
 	}
 
+	if query, exists := resolvePolicy(route, req.Method); exists {
+		result, err := evalPolicy(query, oapi.policy, req, pathParams)
+		if nil != err {
+			replacer.Set(OPENAPI_ERROR, err.Error())
+			replacer.Set(OPENAPI_STATUS_CODE, 403)
+			if oapi.LogError {
+				oapi.err(err.Error())
+			}
+			return nil
+		}
+
+		if !result {
+			err = fmt.Errorf("Denied: %s", query)
+			replacer.Set(OPENAPI_ERROR, err.Error())
+			replacer.Set(OPENAPI_STATUS_CODE, 403)
+			if oapi.LogError {
+				oapi.err(err.Error())
+			}
+			return err
+		}
+	}
+
 	wrapper := &WrapperResponseWriter{ResponseWriter: w}
 	if err := next.ServeHTTP(wrapper, req); nil != err {
 		return err
@@ -108,6 +130,5 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 			}
 		}
 	}
-
 	return nil
 }
