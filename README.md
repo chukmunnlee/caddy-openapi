@@ -47,7 +47,7 @@ Reports any errors as a `{openapi.error}` [placeholder](https://caddyserver.com/
 | Fields                   | Description |
 |--------------------------|-------------|
 | `spec <oas_file>`        | The OpenAPI3 YAML file. This attribute is a mandatory |
-| `policy_bundle <bundle>` | [OPA](https://www.openpolicyagent.org/) policy bundle created with `opa build` |
+| `policy_bundle <bundle>` | [OPA](https://www.openpolicyagent.org/) policy bundle created with `opa build`. |
 | `fall_through`           | Toggles fall through when the request does do match the provided OpenAPI spec. Default is `false` |
 | `validate_servers`       | Enable server validation. Accepts `true`, `false` or just the directive which enables validation. Default is `true`. |
 | `log_error`              | Toggles error logging. Default is `false` |
@@ -105,7 +105,7 @@ Try out the `customer.yaml` API by running the accompanying node application.
 
 ## Using OpenPolicyAgent
 
-You can enforce policies on routes by adding the `x-policy` field to either the [OpenAPI3 document](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#schema) level, or the [path item](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#pathItemObject) level or or the (operation)[https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#operationObject) level. 
+You can enforce policies on routes by adding the `x-policy` field to either the [OpenAPI3 document](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#schema) level, or the [path item](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#pathItemObject) level or or the [operation](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#operationObject) level. 
 
 If a `x-policy` field is added at the
 - *OpenAPI3 document* then the policy will be applied to all path
@@ -113,7 +113,7 @@ If a `x-policy` field is added at the
 - *Operation* then the policy will only be applied to that operation eg. `GET/api/v1/customer`
 `x-policy` attribute nested deeper into the 
 
-The 'deeper' a `x-policy` field, the higher its precedence. 
+The 'deeper' a `x-policy` field, the higher its precedence. Since `policy_bundle` is an optional, `x-policy` will not be processed if no bundles are loaded.
 
 Assume the following OPA policy file
 ```
@@ -127,7 +127,7 @@ allow {
   to_number(input.pathParams.custId) >= 100
 }
 ```
-has been bundled as `bundle.tar.gz`.
+has been bundled as `bundle.tar.gz`. Load it with `policy_bundle`
 
 The following OpenAPI3 fragment show how you can evaluate `authz.allow` on all `GET /api/customer/`
 ```
