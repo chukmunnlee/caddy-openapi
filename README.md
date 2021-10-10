@@ -113,7 +113,7 @@ If a `x-policy` field is added at the
 - *Operation* then the policy will only be applied to that operation eg. `GET/api/v1/customer`
 `x-policy` attribute nested deeper into the 
 
-The 'deeper' a `x-policy` field, the higher its precedence. Since `policy_bundle` is optional, no `x-policy` will not be processed if no bundles are loaded.
+The 'deeper' a `x-policy` field, the higher its precedence. Since `policy_bundle` is optional, no `x-policy` will be evaluated if no bundle are loaded.
 
 Assume the following OPA policy file
 ```
