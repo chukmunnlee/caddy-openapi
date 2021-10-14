@@ -14,13 +14,14 @@
 
 	route @openapi {
 		rewrite @openapi /customer.yaml
-		root .
+		root ./examples/customer
 		file_server 
 	}
 
 	route @api {
 		openapi {
 			spec ./customer.yaml
+			policy_bundle ../policy/bundle.tar.gz
 			check {
 				req_body
 				resp_body
