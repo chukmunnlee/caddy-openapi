@@ -161,4 +161,4 @@ The HTTP request are converted into `input` according to the following table
 
 Assume all values are string
 
-This plugin currently can only work with policies/rules that return true and false.
+This plugin currently can only work with policies/rules that return true or false.
