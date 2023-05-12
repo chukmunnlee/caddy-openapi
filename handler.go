@@ -126,6 +126,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 			validateRespInput.SetBodyBytes(wrapper.Buffer)
 			if err := openapi3filter.ValidateResponse(req.Context(), validateRespInput); nil != err {
 				respErr := err.(*openapi3filter.ResponseError)
+				replacer.Set(OPENAPI_RESPONSE_ERROR, respErr.Error())
 				oapi.err(fmt.Sprintf("<< %s %s %s: %s", getIP(req), req.Method, req.RequestURI, respErr.Error()))
 			}
 		}

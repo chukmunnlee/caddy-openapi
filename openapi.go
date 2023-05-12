@@ -25,6 +25,7 @@ const (
 	X_POLICY               = "x-policy"
 	OPENAPI_ERROR          = "openapi.error"
 	OPENAPI_STATUS_CODE    = "openapi.status_code"
+	OPENAPI_RESPONSE_ERROR = "openapi.response_error"
 	TOKEN_OPENAPI          = "openapi"
 	TOKEN_POLICY_BUNDLE    = "policy_bundle"
 	TOKEN_SPEC             = "spec"
