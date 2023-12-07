@@ -4,3 +4,4 @@ dist
 openapitools.json
 *.tmp
 bundle.tar.gz
+tags

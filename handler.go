@@ -27,6 +27,7 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 	replacer := req.Context().Value(caddy.ReplacerCtxKey).(*caddy.Replacer)
 	replacer.Set(OPENAPI_ERROR, "")
 	replacer.Set(OPENAPI_STATUS_CODE, "")
+	replacer.Set(OPENAPI_RESPONSE_ERROR, "")
 
 	route, pathParams, err := oapi.router.FindRoute(req)
 
