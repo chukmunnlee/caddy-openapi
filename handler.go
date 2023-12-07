@@ -54,11 +54,19 @@ func (oapi OpenAPI) ServeHTTP(w http.ResponseWriter, req *http.Request, next cad
 				},
 			}
 			err = openapi3filter.ValidateRequest(req.Context(), validateReqInput)
-			if nil != err {
-				reqErr := err.(*openapi3filter.RequestError)
-				replacer.Set(OPENAPI_ERROR, reqErr.Error())
-				//replacer.Set(OPENAPI_STATUS_CODE, reqErr.HTTPStatus())
-				replacer.Set(OPENAPI_STATUS_CODE, 400)
+			if err != nil {
+				if reqErr, ok := err.(*openapi3filter.RequestError); ok {
+					// Handle request validation error
+					replacer.Set(OPENAPI_ERROR, reqErr.Error())
+					replacer.Set(OPENAPI_STATUS_CODE, 400)
+
+				} else {
+					// Handle security requirements validation error
+					securityReqErr := err.(*openapi3filter.SecurityRequirementsError)
+					replacer.Set(OPENAPI_ERROR, securityReqErr.Error())
+					replacer.Set(OPENAPI_STATUS_CODE, 500)
+				}
+
 				if oapi.LogError {
 					oapi.err(fmt.Sprintf(">> %s %s %s: %s", getIP(req), req.Method, req.RequestURI, err))
 				}
