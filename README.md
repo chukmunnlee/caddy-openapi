@@ -4,17 +4,15 @@ This middleware validates HTTP request and response against a OpenAPI V3 Specifi
 
 ## Installation
 
-**IMPORTANT**: Due to the dependencies that this plugin uses, you can **only** build it with Go 1.17.x and link it against Caddyserver V2 v2.5.2
-
 Build caddy with caddy-openapi, run `make`. This will build for Linux, Windows and OSX.
 
 You can also build with `xcaddy`
 ```
-xcaddy build v2.5.2 \
-    --with github.com/chukmunnlee/caddy-openapi=.
+xcaddy build \
+    --with github.com/chukmunnlee/caddy-openapi
 ```
 
-Tested with `go version go1.17.12 linux/amd64`.
+Tested with `go version go1.21.1 linux/amd64`.
 
 
 ## Usage
