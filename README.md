@@ -12,8 +12,7 @@ xcaddy build \
     --with github.com/chukmunnlee/caddy-openapi
 ```
 
-Tested with `go version go1.21.1 linux/amd64`.
-
+Tested with `go version go1.22.3 linux/amd64` on `Linux <name> 6.5.0-35-generic #35~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC <timestamp> x86_64 x86_64 x86_64 GNU/Linux`
 
 ## Usage
 
