@@ -3,7 +3,7 @@ TAG := $(shell git rev-parse --short master)
 
 .PHONY: all
 
-all: linux windows darwin
+all: linux windows darwin darwin-arm64
 
 linux:
 	GOOS=linux GOARCH=amd64 xcaddy build $(VERSION) \
