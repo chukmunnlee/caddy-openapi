@@ -1,4 +1,4 @@
-VERSION = "v2.5.2"
+#VERSION = "v2.5.2"
 TAG := $(shell git rev-parse --short master)
 
 .PHONY: all
@@ -17,6 +17,11 @@ windows:
 
 darwin:
 	GOOS=darwin GOARCH=amd64 xcaddy build $(VERSION) \
+		  --output dist/caddy-amd6-darwin-$(TAG)  \
+		  --with github.com/chukmunnlee/caddy-openapi=.
+
+darwin-arm64:
+	GOOS=darwin GOARCH=arm64 xcaddy build $(VERSION) \
 		  --output dist/caddy-amd6-darwin-$(TAG)  \
 		  --with github.com/chukmunnlee/caddy-openapi=.
 

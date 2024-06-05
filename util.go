@@ -78,12 +78,13 @@ func parseCheckDirective(oapi *OpenAPI, d *caddyfile.Dispenser) error {
 func resolvePolicy(r *routers.Route, method string) (string, bool) {
 
 	// global
-	policy := hasXPolicy(r.Spec.ExtensionProps, "")
+	//policy := hasXPolicy(r.Spec.ExtensionProps, "")
+	policy := hasXPolicy(r.Spec.Extensions, "")
 
 	var oper *openapi3.Operation
 
 	// path
-	policy = hasXPolicy(r.PathItem.ExtensionProps, policy)
+	policy = hasXPolicy(r.PathItem.Extensions, policy)
 
 	switch strings.ToLower(method) {
 	case "get":
@@ -107,13 +108,15 @@ func resolvePolicy(r *routers.Route, method string) (string, bool) {
 	}
 
 	// method
-	policy = hasXPolicy(oper.ExtensionProps, policy)
+	policy = hasXPolicy(oper.Extensions, policy)
 
 	return policy, "" != policy
 }
 
-func hasXPolicy(p openapi3.ExtensionProps, d string) string {
-	v := p.Extensions[X_POLICY]
+// func hasXPolicy(p openapi3.ExtensionProps, d string) string {
+func hasXPolicy(p map[string]interface{}, d string) string {
+	//v := p.Extensions[X_POLICY]
+	v := p[X_POLICY]
 	if nil == v {
 		return d
 	}
